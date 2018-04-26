@@ -1,0 +1,97 @@
+# ======================================================
+# BAKE LIGHTING FOR ALL ASSETS IN ALL RENDER LAYERS
+# ======================================================
+
+
+import os
+import maya.standalone as ms
+import maya.cmds as mc
+# import maya.mel as mm
+
+ms.initialize()
+
+
+# DEFINE VARIABLES
+
+sceneFile = ""
+version = sceneFile.split(".")[0][-5:]
+batchrender = """ "C:/Program Files/Autodesk/Maya2017/bin/Render.exe" """
+renderEngine = "vray"
+start = "1001"
+end = start
+xres = "1024"
+yres = xres
+renderDirectory = ""
+
+
+# GET RENDER LAYERS
+def get_renderLayerList():
+    renderLayerList = mc.ls(type="renderLayer")
+    renderLayerList.remove("defaultRenderLayer")
+    return renderLayerList
+
+
+# GET LIGHTMAP NAMES
+def get_lightmapName(node):
+    lightmapName = mc.polyUVSet(node, q=True, auv=True)[-1]
+    # print lightmapName
+    return lightmapName
+
+
+def vopCheck(node, vopName):
+    vopList = mc.listRelatives(vopName, children=True, shapes=True)
+    return "{}Shape".format(node) in vopList
+
+# Generate batch Render Command
+def main():
+    for layer in renderLayerList:
+        # FOR EACH ASSET
+        for each in assetList:
+            renderLayer = layer.lower()
+            nodes = each
+            bakeMap = get_lightmapName(nodes)
+            imageName = "T_siriHouse_{}_{}_e".format(nodes.split("GEO_")[1], renderLayer)
+
+            if os.path.exists("{}{}\\{}\\{}.png".format(renderDirectory, version, renderLayer, imageName)):
+                print "SKIPPING {}. ALREADY EXISTS".format(imageName)
+                continue
+
+            elif vopCheck(each, "vrayobjectproperties"):
+                mc.setAttr("vrayobjectproperties.ignore", 1)
+                mc.file(save=True)
+                print "ignoring VOP"
+
+            else:
+                mc.setAttr("vrayobjectproperties.ignore", 0)
+                mc.file(save=True)
+
+            # print "{} -r {} -s {} -e {} -x {} -y {} -rl {} -bake_node {} -bake_map {} -rd {}{}\\{} -im {} {}".format(batchrender, renderEngine, start, end, xres, yres, renderLayer, nodes, bakeMap, renderDirectory, version, renderLayer, imageName, sceneFile)
+            os.system("{} -r {} -x {} -y {} -rl {} -bake_node {} -bake_map {} -rd {}{} -im {} {}".format(
+                batchrender,
+                renderEngine,
+                xres, yres,
+                renderLayer,
+                nodes, bakeMap,
+                renderDirectory,
+                version,
+                imageName,
+                sceneFile))
+
+
+# OPEN MAYA SCENE
+mc.file(sceneFile, open=True)
+
+# ASSIGN VARIABLES
+
+# GET RENDER LAYERS
+renderLayerList = get_renderLayerList()
+
+# GET ASSETS TO BAKE
+assetList = mc.listRelatives("ASSET_GRP", shapes=False, children=True)
+#assetList = ['GEO_Roof']
+
+# BAKE LIGHTING
+main()
+
+# PAUSE OUTPUT
+os.system("pause")
