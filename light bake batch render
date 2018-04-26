@@ -13,16 +13,16 @@ ms.initialize()
 
 # DEFINE VARIABLES
 
-sceneFile = ""
+sceneFile = "R:\TASKS\default\skassekert\scenes\siri_at_home\lighting\lighting_v0022.mb"
 version = sceneFile.split(".")[0][-5:]
 batchrender = """ "C:/Program Files/Autodesk/Maya2017/bin/Render.exe" """
 renderEngine = "vray"
 start = "1001"
 end = start
-xres = "1024"
+xres = "2048"
 yres = xres
-renderDirectory = ""
-
+renderDirectory = "R:\\TASKS\\default\\skassekert\\images\\"
+rendertime = 5
 
 # GET RENDER LAYERS
 def get_renderLayerList():
@@ -42,15 +42,34 @@ def vopCheck(node, vopName):
     vopList = mc.listRelatives(vopName, children=True, shapes=True)
     return "{}Shape".format(node) in vopList
 
+
+def pedestalToggle(node):
+    if node == "GEO_siriAthome_cylinder":
+        print "rectangle off"
+        mc.setAttr("GEO_siriAthome_rectangle.visibility", 0)
+        print "cylinder on"
+        mc.setAttr("GEO_siriAthome_cylinder.visibility", 1)
+
+    elif node == "GEO_siriAthome_rectangle":
+        print "rectangle on"
+        mc.setAttr("GEO_siriAthome_rectangle.visibility", 1)
+        print "cylinder off"
+        mc.setAttr("GEO_siriAthome_cylinder.visibility", 0)
+
+    else:
+        mc.setAttr("GEO_siriAthome_rectangle.visibility", 1)
+        mc.setAttr("GEO_siriAthome_cylinder.visibility", 1)
+
 # Generate batch Render Command
 def main():
     for layer in renderLayerList:
-        # FOR EACH ASSET
         for each in assetList:
             renderLayer = layer.lower()
             nodes = each
             bakeMap = get_lightmapName(nodes)
             imageName = "T_siriHouse_{}_{}_e".format(nodes.split("GEO_")[1], renderLayer)
+
+            pedestalToggle(each)
 
             if os.path.exists("{}{}\\{}\\{}.png".format(renderDirectory, version, renderLayer, imageName)):
                 print "SKIPPING {}. ALREADY EXISTS".format(imageName)
@@ -65,7 +84,6 @@ def main():
                 mc.setAttr("vrayobjectproperties.ignore", 0)
                 mc.file(save=True)
 
-            # print "{} -r {} -s {} -e {} -x {} -y {} -rl {} -bake_node {} -bake_map {} -rd {}{}\\{} -im {} {}".format(batchrender, renderEngine, start, end, xres, yres, renderLayer, nodes, bakeMap, renderDirectory, version, renderLayer, imageName, sceneFile)
             os.system("{} -r {} -x {} -y {} -rl {} -bake_node {} -bake_map {} -rd {}{} -im {} {}".format(
                 batchrender,
                 renderEngine,
@@ -82,13 +100,13 @@ def main():
 mc.file(sceneFile, open=True)
 
 # ASSIGN VARIABLES
+mc.setAttr("vraySettings.progressiveMaxTime", rendertime)
 
 # GET RENDER LAYERS
 renderLayerList = get_renderLayerList()
 
 # GET ASSETS TO BAKE
 assetList = mc.listRelatives("ASSET_GRP", shapes=False, children=True)
-#assetList = ['GEO_Roof']
 
 # BAKE LIGHTING
 main()
