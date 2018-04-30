@@ -1,3 +1,5 @@
+
+
 # ==================================================================================================
 # import python
 # ==================================================================================================
@@ -81,10 +83,10 @@ mc.playbackOptions(ast=1001, aet=1096)
 mc.playbackOptions(min=1001, max=1096)
 
 # set to animation
-mc.setAttr("vraySettings.animType", 1)
-mc.setAttr('vraySettings.animBatchOnly', 1)
-mc.setAttr("defaultRenderGlobals.startFrame", 1001)
-mc.setAttr("defaultRenderGlobals.endFrame", 1096)
+#mc.setAttr("vraySettings.animType", 1)
+#mc.setAttr('vraySettings.animBatchOnly', 1)
+#mc.setAttr("defaultRenderGlobals.startFrame", 1001)
+#mc.setAttr("defaultRenderGlobals.endFrame", 1096)
 
 # create vray bake nodes
 mc.createNode("VRayBakeOptions", name="vrayBakeOptions")
@@ -101,70 +103,46 @@ mc.select("ASSET_GRP", r=True)
 mc.hyperShade(assign="DEFAULT_blend_SG")
 mc.hyperShade(assign="AO_blend_SG")
 
+
+# ==================================================================================================
 # assign switch Attribute
-mc.select('*_Wall*', r=True)
-geo_w_glass = mc.ls(sl=True, tr=True)
-for node in geo_w_glass:
-    mc.vray("addAttributesFromGroup", node, "vray_user_attributes", 1)
-    mc.setAttr('{}.vrayUserAttributes'.format(node), "switch_Alpha=0", type="string")
+# ==================================================================================================
 
-"GEO_siriAthome_cylinder"
-"GEO_siriAthome_rectangle"
-"GEO_House_Terrain"
-GEO_HP_living_Room
-GEO_HP_kitchen
-GEO_HP_bedroom
+def masterSwitchCreate():
+    material_assignment_dict = {
+        "GEO_siriAthome_cylinder": 0,
+        "GEO_siriAthome_rectangle": 0,
+        "GEO_House_Terrain": 0,
+        "GEO_HP_living_Room": 6,
+        "GEO_HP_kitchen": 7,
+        "GEO_HP_bedroom": 6,
+        "GEO_AshTree": 1,
+        "GEO_BirchTree": 2,
+        "GEO_House_interior": 3,
+        "GEO_House_Roof": 4,
+        "GEO_House_Floor": 4,
+        "GEO_Front_Wall_Whole": 5,
+        "GEO_Left_Wall_Whole": 5,
+        "GEO_Back_Wall_Whole": 5,
+        "GEO_Right_Wall_Whole": 5
+    }
 
-"terrain_mtl" : 0
+    assetList = mc.listRelatives("ASSET_GRP", children=True, shapes=False)
 
-#=============================================================
+    for each in assetList:
+        if each in material_assignment_dict:
+            # print "{0} exists with {1}".format(each, material_assignment_dict[each])
+            mc.vray("addAttributesFromGroup", each, "vray_user_attributes", 1)
+            mc.setAttr('{}.vrayUserAttributes'.format(each),
+                       "MASTER_mtl_switch={}".format(material_assignment_dict[each]), type="string")
+        else:
+            print "{} does not have a switch assignment! SKIPPING".format(each)
+            continue
 
-GEO_AshTree
+masterSwitchCreate()
 
-"ashTree_mtl" : 1
+# create VOP # ==================================================================================================
 
-#=============================================================
-
-GEO_BirchTree
-
-"birchTree_mtl" : 2
-
-#=============================================================
-
-GEO_House_interior
-
-interior_SG
-
-#=============================================================
-
-GEO_House_Roof
-GEO_House_Floor
-
-homeExterior_SG
-
-#=============================================================
-
-GEO_Front_Wall_Whole
-GEO_Left_Wall_Whole
-GEO_Back_Wall_Whole
-GEO_Right_Wall_Whole
-
-exteriorWalls_SG
-
-#=============================================================
-MATERIALS = {
-    "terrain_mtl" : 0,
-    "ashTree_mtl" : 1,
-    "birchTree_mtl" : 2,
-    "interior_mtl" : 3,
-    "homeExterior_mtl" : 4,
-    "exteriorWalls_BLEND_mtl": 5,
-}
-
-MATERIALS.get("terrain_mtl")
-
-
-# create VOP
 VOPname = "vrayobjectproperties"
 mc.createNode("VRayObjectProperties", name=VOPname)
 mc.setAttr("{}.primaryVisibility".format(VOPname), 0)
@@ -173,7 +151,8 @@ mc.setAttr("{}.giVisibility".format(VOPname), 0)
 
 VOPnodes = [
     "GEO_Roof",
-    "GEO_Front_Wall_Whole"
+    "GEO_Front_Wall_Whole",
+    "GEO_blindsFrontWall"
 ]
 mc.sets(VOPnodes, forceElement=VOPname)
 
@@ -193,12 +172,7 @@ membership_AO = [
     "ASSET_GRP",
 ]
 
-for each in membership_AO:
-    mc.editRenderLayerMembers(currentlayer, each, noRecurse=True);
-
-mc.editRenderLayerGlobals(currentRenderLayer=currentlayer)
-mc.select("ASSET_GRP", r=True)
-mc.hyperShade(assign="AO_blend_SG")
+mc.connectAttr("MASTER_SG", "{}.shadingGroupOverride".format(currentlayer), force=True)
 
 # ==================================================================================================
 # MORNING RenderLayer Setup
@@ -212,12 +186,7 @@ members = [
     "INTERIOR_LIGHTS_GRP"
 ]
 
-for each in members:
-    mc.editRenderLayerMembers(currentlayer, each, noRecurse=True);
-
-mc.editRenderLayerGlobals(currentRenderLayer=currentlayer)
-mc.select("ASSET_GRP", r=True)
-mc.hyperShade(assign="DEFAULT_blend_SG")
+mc.connectAttr("MASTER_SG", "{}.shadingGroupOverride".format(currentlayer), force=True)
 
 LightsList_MORNING = [
     u'IES_kitchenCeiling_3',
@@ -250,12 +219,7 @@ membership_EVENING = [
     "INTERIOR_LIGHTS_GRP"
 ]
 
-for each in membership_EVENING:
-    mc.editRenderLayerMembers(currentlayer, each, noRecurse=True);
-
-mc.editRenderLayerGlobals(currentRenderLayer=currentlayer)
-mc.select("ASSET_GRP", r=True)
-mc.hyperShade(assign="DEFAULT_blend_SG")
+mc.connectAttr("MASTER_SG", "{}.shadingGroupOverride".format(currentlayer), force=True)
 
 LightsList_EVENING = [
     "IES_lamp_table_1",
@@ -270,10 +234,7 @@ LightsList_EVENING = [
     "IES_bathroomCeiling_4",
     "IES_bathroomCeiling_5"
 ]
-shapesList = mc.listRelatives(LightsList_EVENING, children=True)
-for each in shapesList:
-    mc.editRenderLayerAdjustment("{}.enabled".format(each))
-    mc.setAttr("{}.enabled".format(each), 1)
+
 
 # ==================================================================================================
 # NIGHT RenderLayer Setup
@@ -287,19 +248,8 @@ members = [
     "INTERIOR_LIGHTS_GRP"
 ]
 
-for each in members:
-    mc.editRenderLayerMembers(currentlayer, each, noRecurse=True);
+mc.connectAttr("MASTER_SG", "{}.shadingGroupOverride".format(currentlayer), force=True)
 
-mc.editRenderLayerGlobals(currentRenderLayer=currentlayer)
-mc.select("ASSET_GRP", r=True)
-mc.hyperShade(assign="DEFAULT_blend_SG")
-
-mc.select("IES_*", r=True)
-nightLightsList = mc.ls(sl=True, transforms=True)
-shapesList = mc.listRelatives(nightLightsList, children=True)
-for each in shapesList:
-    mc.editRenderLayerAdjustment("{}.enabled".format(each))
-    mc.setAttr("{}.enabled".format(each), 1)
 
 # ==================================================================================================
 # BEDTIME RenderLayer Setup
@@ -313,12 +263,7 @@ membership_BEDTIME = [
     "INTERIOR_LIGHTS_GRP"
 ]
 
-for each in membership_BEDTIME:
-    mc.editRenderLayerMembers(currentlayer, each, noRecurse=True);
-
-mc.editRenderLayerGlobals(currentRenderLayer=currentlayer)
-mc.select("ASSET_GRP", r=True)
-mc.hyperShade(assign="DEFAULT_blend_SG")
+mc.connectAttr("MASTER_SG", "{}.shadingGroupOverride".format(currentlayer), force=True)
 
 LightsList_BEDTIME = [
     "IES_cabinet_1",
@@ -332,8 +277,7 @@ LightsList_BEDTIME = [
     "IES_lamp_table_1"
 ]
 
-shapesList = mc.listRelatives(LightsList_BEDTIME, children=True)
-for each in shapesList:
+for each in mc.listRelatives(LightsList_BEDTIME, children=True):
     mc.editRenderLayerAdjustment("{}.enabled".format(each))
     mc.setAttr("{}.enabled".format(each), 1)
 
@@ -345,4 +289,63 @@ mc.file("R:/TASKS/default/skassekert/renderData/Camera/TurnTableCam_v0002.mb", i
 mc.file("R:/TASKS/default/skassekert/renderData/lightRig/LightRig_v0002.mb", i=True)
 mc.file("R:/TASKS/default/skassekert/renderData/shaders/DEFAULT_blend_SG.mb", i=True)
 mc.file("R:/TASKS/default/skassekert/renderData/shaders/AO_blend_SG.mb", i=True)
-mc.file("", r=True)
+mc.file("R:/PRODUCTS/SourceContent/HomePod/Siri_At_Home/Model/SM_leftWall_whole.dae", r=True)
+mc.file("R:/PRODUCTS/SourceContent/HomePod/Siri_At_Home/Model/SM_frontWall_whole.dae", r=True)
+mc.file("R:/PRODUCTS/SourceContent/HomePod/Siri_At_Home/Model/SM_backWall_whole.dae", r=True)
+mc.file("R:/PRODUCTS/SourceContent/HomePod/Siri_At_Home/Model/SM_roof.dae", r=True)
+mc.file("R:/PRODUCTS/SourceContent/HomePod/Siri_At_Home/Model/SM_rightWall_whole.dae", r=True)
+mc.file("R:/PRODUCTS/SourceContent/HomePod/Siri_At_Home/Model/SM_floor.dae", r=True)
+mc.file("R:/PRODUCTS/SourceContent/HomePod/Siri_At_Home/Model/SM_interior.dae", r=True)
+mc.file("R:/PRODUCTS/SourceContent/HomePod/Siri_At_Home/Model/SM_terrain.dae", r=True)
+mc.file("R:\PRODUCTS\SourceContent\HomePod\Siri_At_Home\Model\SM_HomePod_Bedroom.dae", r=True)
+mc.file("R:\PRODUCTS\SourceContent\HomePod\Siri_At_Home\Model\SM_Homepod_LivingRoom.dae", r=True)
+mc.file("R:\PRODUCTS\SourceContent\HomePod\Siri_At_Home\Model\SM_HomePod_Kitchen.dae", r=True)
+
+
+
+#=======================================================================================================================
+#COPY LIGHTMAP TO MAP1 - REMOVES NEED FOR TRIPLE SWITCH AND ENABLES LIGHTMAP VIEWING IN VIEWPORT
+#=======================================================================================================================
+for node in mc.ls(sl=True):
+    lightmapName = mc.polyUVSet(node, q=True, auv=True)[-1]
+    mapName = mc.polyUVSet(node, q=True, auv=True)[0]
+    mc.polyCopyUV(node, uvSetNameInput=lightmapName, uvSetName=mapName)
+
+#=======================================================================================================================
+#SWITCHES FILE READ PATH RATHER THAN CREATING 5 SEPARATE SHADERS
+#USE AS CUSTOM SHELF BUTTONS
+#=======================================================================================================================
+def textureSwap(timeofday):
+    fileTextureList = [
+        u'T_siriHouse_siriAthome_rectangle_evening_e_1',
+        u'T_siriHouse_Back_Wall_Whole_evening_e_1',
+        u'T_siriHouse_Front_Wall_Whole_evening_e_1',
+        u'T_siriHouse_siriAthome_cylinder_evening_e_1',
+        u'T_siriHouse_Left_Wall_Whole_evening_e_1',
+        u'T_siriHouse_HP_living_Room_evening_e_1',
+        u'T_siriHouse_Right_Wall_Whole_evening_e_1',
+        u'T_siriHouse_blindsFrontWall_evening_e_1',
+        u'T_siriHouse_House_Roof_evening_e_1',
+        u'T_siriHouse_blindsLeftWall_evening_e_1',
+        u'T_siriHouse_House_Terrain_evening_e_1',
+        u'T_siriHouse_blindsBackWall_evening_e_1',
+        u'T_siriHouse_House_interior_evening_e_1',
+        u'T_siriHouse_House_Floor_evening_e_1',
+        u'T_siriHouse_HP_bedroom_evening_e_1',
+        u'T_siriHouse_HP_kitchen_evening_e_1',
+        u'T_siriHouse_BirchTree_evening_e_1',
+        u'T_siriHouse_AshTree_evening_e_1'
+    ]
+    for node in fileTextureList:
+        header = "_".join(node.split("_")[0:-3])
+        tail = node.split("_")[-2]
+        mc.setAttr("{}.fileTextureName".format(node),
+                   "images/bake/v0027/{0}/graded/{1}_{0}_e.png".format(timeofday, header), type="string")
+        print "{}.fileTextureName".format(node), "images/bake/v0027/{0}/graded/{1}_{0}_e.png".format(timeofday, header)
+
+
+textureSwap("ao")
+textureSwap("morning")
+textureSwap("evening")
+textureSwap("night")
+textureSwap("bedtime")
