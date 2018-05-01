@@ -9,8 +9,8 @@ import maya.cmds as mc
 # ASSET IMPORT
 # ==================================================================================================
 
-mc.file("R:/TASKS/default/skassekert/renderData/Camera/TurnTableCam_v0002.mb", i=True, namespace="Shotcam");
-mc.file("R:/TASKS/default/skassekert/renderData/lightRig/LightRig_v0004.mb", i=True)
+mc.file("R:/TASKS/default/skassekert/renderData/Camera/TurnTableCam_v0002.mb", i=True, namespace="Shotcam")
+mc.file("R:/TASKS/default/skassekert/renderData/lightRig/LightRig_v0004.ma", i=True)
 mc.file("R:/TASKS/default/skassekert/renderData/shaders/MASTER_SWITCH_SG.ma", i=True)
 mc.file("R:/PRODUCTS/SourceContent/HomePod/Siri_At_Home/Model/SM_leftWall_whole.dae", i=True)
 mc.file("R:/PRODUCTS/SourceContent/HomePod/Siri_At_Home/Model/SM_frontWall_whole.dae", i=True)
@@ -64,25 +64,25 @@ mc.createRenderLayer(name="bedtime", number=1, empty=True)
 # for each in selection:
 #     mc.editRenderLayerAdjustment("{}.enabled".format(each), remove=True)
 
+
+def renderLayerSetup(currentlayer, membershipList):
+    for each in membershipList:
+        mc.editRenderLayerMembers(currentlayer, each, noRecurse=True);
+    mc.connectAttr("MASTER_SWITCH_SG.message", "{}.shadingGroupOverride".format(currentlayer), force=True)
+    # SELECT RENDERLAYER
+    mc.editRenderLayerGlobals(currentRenderLayer=currentlayer)
+
+
 # ==================================================================================================
 # AO RenderLayer Setup
 # ==================================================================================================
 
-currentlayer = "ao"
-
-membershipList = [
+aomembershipList = [
     "ASSET_GRP",
 ]
+renderLayerSetup("ao", aomembershipList)
 
-for each in membershipList:
-    mc.editRenderLayerMembers(currentlayer, each, noRecurse=True);
-
-mc.connectAttr("MASTER_SWITCH_SG.message", "{}.shadingGroupOverride".format(currentlayer), force=True)
-
-# SELECT RENDERLAYER
-mc.editRenderLayerGlobals(currentRenderLayer="ao")
-
-# ASSIGN SWITCH OVERRIDE
+# ASSIGN SWITCH OVERRIDE on MASTER_SWITCH_MTL
 mc.editRenderLayerAdjustment("MASTER_SWITCH_mtl.materialsSwitch")
 mc.setAttr("MASTER_SWITCH_mtl.materialsSwitch", 1)
 
@@ -91,94 +91,45 @@ mc.setAttr("MASTER_SWITCH_mtl.materialsSwitch", 1)
 # MORNING RenderLayer Setup
 # ==================================================================================================
 
-currentlayer = "morning"
+morningmembershipList = [
+    "ASSET_GRP",
+    "MORNING_GRP",
+    "INTERIOR_LIGHTS_GRP"
+]
+renderLayerSetup("morning", morningmembershipList)
 
+# ==================================================================================================
+# EVENING RenderLayer Setup
+# ==================================================================================================
 membershipList = [
     "ASSET_GRP",
     "MORNING_GRP",
     "INTERIOR_LIGHTS_GRP"
 ]
-
-for each in membershipList:
-    mc.editRenderLayerMembers(currentlayer, each, noRecurse=True);
-
-mc.connectAttr("MASTER_SWITCH_SG.message", "{}.shadingGroupOverride".format(currentlayer), force=True)
-# SELECT RENDERLAYER
-mc.editRenderLayerGlobals(currentRenderLayer="morning")
-
-
-# ==================================================================================================
-# EVENING RenderLayer Setup
-# ==================================================================================================
-currentlayer = "evening"
-
-membershipList = [
-    "ASSET_GRP",
-    "EVENING_GRP",
-    "INTERIOR_LIGHTS_GRP"
-]
-
-for each in membershipList:
-    mc.editRenderLayerMembers(currentlayer, each, noRecurse=True);
-
-mc.connectAttr("MASTER_SWITCH_SG.message", "{}.shadingGroupOverride".format(currentlayer), force=True)
-# SELECT RENDERLAYER
-mc.editRenderLayerGlobals(currentRenderLayer="evening")
+renderLayerSetup("evening", membershipList)
 
 
 # ==================================================================================================
 # NIGHT RenderLayer Setup
 # ==================================================================================================
 
-currentlayer = "night"
-
-membershipList = [
+nightmembershipList = [
     "ASSET_GRP",
-    "NIGHT_GRP",
+    "MORNING_GRP",
     "INTERIOR_LIGHTS_GRP"
 ]
-
-for each in membershipList:
-    mc.editRenderLayerMembers(currentlayer, each, noRecurse=True);
-
-mc.connectAttr("MASTER_SWITCH_SG.message", "{}.shadingGroupOverride".format(currentlayer), force=True)
-# SELECT RENDERLAYER
-mc.editRenderLayerGlobals(currentRenderLayer="night")
+renderLayerSetup("night", nightmembershipList)
 
 # ==================================================================================================
 # BEDTIME RenderLayer Setup
 # ==================================================================================================
 
-currentlayer = "bedtime"
-
-membershipList = [
+bedtimemembershipList = [
     "ASSET_GRP",
-    "NIGHT_GRP",
+    "MORNING_GRP",
     "INTERIOR_LIGHTS_GRP"
 ]
-
-for each in membershipList:
-    mc.editRenderLayerMembers(currentlayer, each, noRecurse=True);
-
-mc.connectAttr("MASTER_SWITCH_SG.message", "{}.shadingGroupOverride".format(currentlayer), force=True)
-# SELECT RENDERLAYER
-mc.editRenderLayerGlobals(currentRenderLayer="bedtime")
-
-LightsList_BEDTIME = [
-    "IES_cabinet_1",
-    # "IES_cabinet_2",
-    # "IES_cabinet_3",
-    # "IES_cabinet_4",
-    # "IES_cabinet_5",
-    # "IES_lamp_floor_1",
-    # "IES_lamp_floor_2",
-    # "IES_lamp_floor_3",
-    "IES_lamp_table_1"
-]
-
-for each in mc.listRelatives(LightsList_BEDTIME, children=True):
-    mc.editRenderLayerAdjustment("{}.enabled".format(each))
-    mc.setAttr("{}.enabled".format(each), 1)
+renderLayerSetup("bedtime", bedtimemembershipList)
 
 
 # ==================================================================================================
@@ -270,6 +221,12 @@ def iesFilePathHP():
         mc.setAttr("{}Shape.iesFile".format(each), IES_Path, type="string")
 
 iesFilePathHP()
+
+
+
+
+
+
 
 
 # ==================================================================================================
