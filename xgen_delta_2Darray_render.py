@@ -1,11 +1,10 @@
-import maya.standalone as ms
 import maya.cmds as mc
 import os
 import xgenm as xge
 import xgenm.xgGlobal as xgg
 from datetime import datetime
 from itertools import product
-from natron_from_XGen_contactSheet import natron_write
+from natron_contactSheet import natron_write
 
 
 def file_path(root_dir, groom_name:str = "", variant:str = "",):
@@ -38,27 +37,17 @@ def xgen_list_collections():
     return list(xge.palettes())
 
 
-def legacy2Igs(collection):
-    '''convert all xgen legacy groom to igs
-    select_collection > Generate > Convert to Interactive Groom
-    '''
-    mc.select(collection)
-    return [mc.listRelatives(i,p=True)[0] for i in mc.xgmGroomConvert(prefix="")]
-
-
 def refresh_ui():
-    #Get the description editor first.
-    de = xgg.DescriptionEditor
-    #Do a full UI refresh
-    de.refresh("Full")
+    """refresh xgen UI after delta load"""
+    de = xgg.DescriptionEditor #Get the description editor first.
+    de.refresh("Full") #Do a full UI refresh
 
 
 def apply_delta_from_paths(collection, paths:list):
     for path in paths:
         # print(path)
         xge.applyDelta(collection, path)
-    de = xgg.DescriptionEditor
-    de.refresh("Full")
+    refresh_ui()
     
 
 def img_output_dir(dx, dy):

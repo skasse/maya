@@ -61,10 +61,3 @@ def natron_write(seq_path, rows:int=1, columns:int=1, resolution:int=500):
     print("created ", out_template)
     from subprocess import check_output
     check_output('"C:/Program Files/Natron/bin/NatronRenderer.exe" "{}" -w Write1'.format(out_template), shell=True)
-
-
-
-
-
-
-# natron_write(seq_path, 2, 2)

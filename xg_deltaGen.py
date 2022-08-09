@@ -1,21 +1,19 @@
-"""this reads toml data, xgd template and outputs to an xgd """
+"""this reads toml data, xgd template and outputs to an xgd for given groomnames"""
 
 import tomli
 import os
 import numpy as np
 from itertools import product
-from xgd_parser_v20220708 import prune
-from xgd_parser_v20220708 import get_desc
-from xgd_parser_v20220708 import get_grooms
+from xg_tools import deltaOutPath, get_desc
+from xg_tools import get_grooms
+from xg_tools import deltaOutPath
 from glob import glob
-
 
 
 # pathing
 sourcePath = "G:/Shared drives/TriplegangersGroom_ext/Groom_INTERNAL/"
 configPath = "0000_base_delta/template/"
 configFile = "delta_c000.toml"
-deltaPath = "maya/base_delta/scenes/deltaGen/"
 
 # open config file with read + binary
 def __load_config():
@@ -24,18 +22,12 @@ def __load_config():
     return config
 
 
-def fit(min, max, length, decimals):
-    step = (max - min)/length
-    x = [round(x, decimals) for x in np.arange(min, max, step)]
-    return(x)
-
-
-def deltaOutPath(groomName):
-    outputPath = "{0}{1}/{2}".format(sourcePath, groomName, deltaPath)
-    if not os.path.exists(outputPath):
-        os.makedirs(outputPath)
-        print("created dir:", outputPath)
-    return outputPath
+def prune(desc:list="", discard:list=["eye", "baby"]):
+    """ with input list, remove discards """
+    descp = [x for x in desc if not any(word in x.lower() for word in discard)]
+    discards = [x for x in desc if any(word in x.lower() for word in discard)]
+    print("retained:", descp), print("discarded:", discards)
+    return descp
 
 
 def file_reset(filename:str=""):
@@ -119,11 +111,11 @@ def dh_exp_gScale(groomName, gScale:list=""):
 
 def dh_wind(groomName, 
     direction:list=[1.0, 0.0, 0.0],
-    stiffness:list=[.3],
+    stiffness:list=[.1],
     constStrength:list=[2],
     gustStrength:list=[.5],
     shearStrength:list=[.1],
-    seed:list=[1],
+    seed:list=[13],
     ):
     """outputs xgen delta within variable ranges for each desc in groomName"""
     palettes = prune(get_desc(groomName))
@@ -149,6 +141,9 @@ def dh_wind(groomName,
                 f.write(modifier)  
 
 
+
+### example usage
+
 # groomName = get_grooms(sourcePath)
 # namelist = ["SimonYuen", "WandaEdwards"]
 # for groomName in namelist:
@@ -157,10 +152,10 @@ def dh_wind(groomName,
 for groomName in get_grooms(sourcePath):
     expList = [
         dh_exp_gScale(groomName, fit(.1, 5, 10, 1)),
-        dh_noise_gen(groomName, fit(.1, 5, 10, 1), fit(1, 10, 5, 1)),
-        dh_cutClamp_gen(groomName, fit(2, 10, 5, 1)),
-        dh_coil_gen(groomName, fit(1,10,4,1), fit(.1,3,4,1)),
-        dh_wind(groomName, direction=[2, .2, 1], stiffness=[0.3, .6], constStrength=[2])
+        # dh_noise_gen(groomName, fit(.1, 5, 10, 1), fit(1, 10, 5, 1)),
+        # dh_cutClamp_gen(groomName, fit(2, 10, 5, 1)),
+        # dh_coil_gen(groomName, fit(1,10,4,1), fit(.1,3,4,1)),
+        # dh_wind(groomName, direction=[2, .2, 1], stiffness=[0.3, .6], constStrength=[2])
     ]
 
 

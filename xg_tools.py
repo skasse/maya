@@ -1,13 +1,30 @@
-""" this script outputs the unique collections and descriptions within an .xgen file"""
-
 import os
 import re
 from glob import glob
+# import maya.cmds as mc
+import xgenm as xge
 
 sourcePath = "G:/Shared drives/TriplegangersGroom_ext/Groom_INTERNAL/"
 xgPath = "/maya/base/scenes/base__head_coll.xgen"
 maPath = "/maya/base/scenes/base.ma"
-deltaPath = "/maya/base_delta/scenes/delta/"
+deltaPath = "maya/base_delta/scenes/deltaGen/"
+
+def xgd_import():
+    """ IMPORT XGD """
+    col = mc.ls("*_coll")[0]
+    importPath = mc.fileDialog2(fm=4) #open multi files
+    for path in importPath:
+        xge.applyDelta(str(col), str(path))
+    de = xgg.DescriptionEditor
+    de.refresh("Full")
+
+
+def xgd_export():
+    """ EXPORT XGD """
+    col = mc.ls("*_coll")[0]
+    exportPath = mc.fileDialog2(fm=0)[0]
+    xge.createDelta(str(col), str(exportPath))
+
 
 def dc_extract(groomName):
     """parses ma file looking for collections and descriptions.  returns dictionary"""
@@ -61,15 +78,15 @@ def get_grooms(path:str=sourcePath, name:str="**"):
     return [x.replace(os.sep, '/').split('/')[-1] for x in glob(path+name)]
 
 
-def fit_input(min, max, length:int="0", decimals:int="1"):
-    step = max/length
+def fit(min, max, length, decimals):
+    step = (max - min)/length
     x = [round(x, decimals) for x in np.arange(min, max, step)]
     return(x)
 
 def deltaOutPath(groomName):
     outputPath = "{0}{1}/{2}".format(sourcePath, groomName, deltaPath)
     if not os.path.exists(outputPath):
-        os.mkdir(outputPath)
+        os.makedirs(outputPath)
         print("created dir:", outputPath)
     return outputPath
 

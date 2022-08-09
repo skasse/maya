@@ -3,14 +3,9 @@ from glob import glob
 import shutil
 
 
-# get directory
-#cwd = os.getcwd()
 path = "G:\\Shared drives\\TriplegangersGroom_ext\\Groom_INTERNAL\\"
-#path = "C:\\tmp\\"
 
-# list files in directory
 grooms = [x for x in glob(path+"**\\maya\\**\\scenes\\")]
-print(grooms)
 
 #rename files in directory to base.ma and base__{collection}.xgen
 
@@ -34,4 +29,6 @@ for groom in grooms:
                 newpath = "\\".join(path.split("\\")[:-1])+"\\base__{}".format(coll)
                 print("rename {0} to {1}".format(file, newpath))
                 shutil.move(file, newpath)
+    else:
+        print("already complete")
 
