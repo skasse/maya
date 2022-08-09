@@ -659,9 +659,9 @@ def searchInput():
     try:
         input = raw_input("namespace to search?")
     except EOFError:
-        print "\nyou didnt type anything..."
+        print("\nyou didnt type anything...")
     else:
-        print "\nyou're searching " + input
+        print("\nyou're searching " + input)
         return input
 
 def createMtlList(input):
