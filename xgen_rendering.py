@@ -53,22 +53,6 @@ def refresh_ui():
     de.refresh("Full")
 
 
-def __apply_delta_by_id(root_dir, delta_dir, delta_id):
-    if type(delta_id)==int or type(delta_id)==str:
-        delta_path = "{0}/{1}/delta{2}.xgd".format(root_dir, delta_dir, str(delta_id))
-        xge.applyDelta("head_coll", delta_path)
-        print(delta_path)
-    elif type(delta_id) == list:
-        for i in delta_id:
-            delta_path = "{0}/{1}/delta{2}.xgd".format(root_dir, delta_dir, i)
-            xge.applyDelta("head_coll", delta_path)
-            print(delta_path)
-    else:
-        print("broken??", type(delta_id))
-    de = xgg.DescriptionEditor
-    de.refresh("Full")
-
-
 def apply_delta_from_paths(collection, paths:list):
     for path in paths:
         # print(path)
