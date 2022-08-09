@@ -1,12 +1,8 @@
 """this reads toml data, xgd template and outputs to an xgd for given groomnames"""
 
 import tomli
-import os
-import numpy as np
 from itertools import product
-from xg_tools import deltaOutPath, get_desc
-from xg_tools import get_grooms
-from xg_tools import deltaOutPath
+from xg_tools import deltaOutPath, get_desc, get_grooms, fit
 from glob import glob
 
 
@@ -15,8 +11,9 @@ sourcePath = "G:/Shared drives/TriplegangersGroom_ext/Groom_INTERNAL/"
 configPath = "0000_base_delta/template/"
 configFile = "delta_c000.toml"
 
-# open config file with read + binary
+
 def __load_config():
+    """open config file with read + binary"""
     with open(sourcePath+configPath+configFile, 'rb') as f:
         config = tomli.load(f)
     return config

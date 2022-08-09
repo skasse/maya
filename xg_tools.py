@@ -1,8 +1,10 @@
 import os
 import re
 from glob import glob
-# import maya.cmds as mc
+import maya.cmds as mc
 import xgenm as xge
+import xgenm.xgGlobal as xgg
+import numpy as np
 
 sourcePath = "G:/Shared drives/TriplegangersGroom_ext/Groom_INTERNAL/"
 xgPath = "/maya/base/scenes/base__head_coll.xgen"
