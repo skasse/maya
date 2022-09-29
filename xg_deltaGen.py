@@ -65,7 +65,10 @@ def prune(desc:list="", discard:list=["eye", "baby"]):
 
 def get_grooms(path:str=sourcePath, name:str="**"):
     """ get grooms from source path.  default name = '**' """
-    return [x.replace(os.sep, '/').split('/')[-1] for x in glob(path+name)]
+    exclude = ["turntableQC", "0000_base_delta"]
+    groomList = [x.replace(os.sep, '/').split('/')[-1] for x in glob(path+name)]
+    groomList = [x for x in groomList if x not in exclude]
+    return groomList
 
 
 
@@ -119,6 +122,7 @@ def clean_deltas():
     import shutil
     for groom in get_grooms(sourcePath):
         shutil.rmtree(deltaOutPath(groom))
+    print("clean complete")
 
 
 def dh_coil_gen(groomName, count:list = "", radius:list = ""):
@@ -139,8 +143,7 @@ def dh_coil_gen(groomName, count:list = "", radius:list = ""):
                 modifier = modifier.replace("<xgenDescName>", desc)
                 modifier = modifier.replace("<count>", str(p[0]))
                 modifier = modifier.replace("<radius>", str(p[1]))
-                print(modifier)
-                # f.write(modifier)
+                f.write(modifier)
                 
 
 def dh_cutClamp_gen(groomName, cutLength:list = "", mask:float=1.0):
@@ -157,6 +160,19 @@ def dh_cutClamp_gen(groomName, cutLength:list = "", mask:float=1.0):
                 modifier = modifier.replace("<cut_length>", str(c))
                 f.write(modifier)  
 
+def dh_cutPercent_gen(groomName, percent:list = "",):
+    """gets descriptions from groomName and outputs array of xgd from count/radius"""
+    palettes = prune(get_desc(groomName))
+    for c in percent:
+        filename = deltaOutPath(groomName)+"dh_cutPercent_{}cmLength.xgd".format(c)
+        file_reset(filename)
+        print(filename)
+        for desc in palettes:
+            with open(filename, 'a') as f:
+                modifier = __load_config()["modifiers"]["dh_cutPercent"][0]
+                modifier = modifier.replace("<xgenDescName>", desc)
+                modifier = modifier.replace("<percent>", str(c))
+                f.write(modifier)  
 
 def dh_noise_gen(groomName, frequency:list="", magnitude:list="", correlation:list=[.5]):
     """gets descriptions from groomName and outputs array of xgd from freq/mag"""
@@ -213,9 +229,9 @@ def dh_wind(groomName,
                 modifier = __load_config()["modifiers"]["dh_wind"][0]
                 modifier = modifier.replace("<xgenDescName>", desc)
                 modifier = modifier.replace("<direction>", str(p[0]))
-                modifier = modifier.replace("<directionV>", str(p[0][0]))
-                modifier = modifier.replace("<directionV>", str(p[0][1]))
-                modifier = modifier.replace("<directionV>", str(p[0][2]))
+                modifier = modifier.replace("<directionX>", str(p[0][0]))
+                modifier = modifier.replace("<directionY>", str(p[0][1]))
+                modifier = modifier.replace("<directionZ>", str(p[0][2]))
                 modifier = modifier.replace("<stiffness>", str(p[1]))
                 modifier = modifier.replace("<constStrength>", str(p[2]))
                 modifier = modifier.replace("<gustStrength>", str(p[3]))
@@ -234,15 +250,16 @@ def dh_wind(groomName,
 
 # for groomName in get_grooms(sourcePath):
 #     expList = [
-#         dh_exp_gScale(groomName, fit(.1, 5, 10, 1)),
-#         # dh_noise_gen(groomName, fit(.1, 5, 10, 1), fit(1, 10, 5, 1)),
+#         dh_exp_gScale(groomName, np.arange(.1, 3.1, .5)),
+#         dh_noise_gen(groomName, np.arange(.1, 5.1, .5), np.arange(.1, 5.1, .5)),
 #         # dh_cutClamp_gen(groomName, fit(2, 10, 5, 1)),
-#         # dh_coil_gen(groomName, fit(1,10,4,1), fit(.1,3,4,1)),
-#         # dh_wind(groomName, direction=[2, .2, 1], stiffness=[0.3, .6], constStrength=[2])
+#         dh_cutPercent_gen(groomName, np.arange(.1, 1, .1)),
+#         dh_coil_gen(groomName, np.arange(.5, 5.1, .5), np.arange(.1, 4.1, .5)),
+#         dh_wind(groomName, direction=[2, .2, 1], constStrength=np.arange(.1, 4.1, .5))
 #     ]
 
-# dh_coil_gen("simonYuen", np.arange(.5, 2.1, .5), np.arange(0, 2.1, .5))
-# dh_coil_gen("simonYuen", 1, 1)
 
-
+# clean_deltas()
+# exclude = ["turntableQC", "0000_base_delta"]
+print(get_grooms())
 
