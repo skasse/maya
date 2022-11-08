@@ -1,0 +1,11 @@
+{"defaultArnoldRenderOptions.renderDevice": 1,
+"defaultRenderGlobals.animationRange": 0,
+"defaultRenderGlobals.startFrame": 1002, 
+"defaultRenderGlobals.endFrame": 1002, 
+"defaultArnoldDriver.ai_translator": "'exr': type='string'", 
+"defaultRenderGlobals.animation": 0, 
+"perspShape.renderable": 0, 
+"defaultRenderGlobals.putFrameBeforeExt": 1, 
+"defaultResolution.width": 2048, 
+"defaultResolution.height": 2048, 
+"defaultResolution.deviceAspectRatio": 1}
