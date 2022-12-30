@@ -65,7 +65,8 @@ def prune(desc:list="", discard:list=["eye", "baby"]):
 
 def get_grooms(path:str=sourcePath, name:str="**"):
     """ get grooms from source path.  default name = '**' """
-    exclude = ["turntableQC", "0000_base_delta"]
+    print(f'search path: {path}, name filters: {name}')
+    exclude = ["turntableQC", "0000_base_delta", "image_DB"]
     groomList = [x.replace(os.sep, '/').split('/')[-1] for x in glob(path+name)]
     groomList = [x for x in groomList if x not in exclude]
     return groomList
@@ -84,7 +85,7 @@ def deltaOutPath(groomName):
         print("created dir:", outputPath)
     return outputPath
 
-def get_desc(groomName, ):
+def get_desc(groomName):
     xgenPath =  "{}{}{}".format(sourcePath, groomName, xgPath)
     desc_names=[]
     xg_file =  open(xgenPath, 'r')
@@ -121,6 +122,7 @@ def clean_deltas():
     """removes all ../scenes/delta/ folders"""
     import shutil
     for groom in get_grooms(sourcePath):
+        print(groom)
         shutil.rmtree(deltaOutPath(groom))
     print("clean complete")
 
@@ -134,7 +136,7 @@ def dh_coil_gen(groomName, count:list = "", radius:list = ""):
     palettes = prune(get_desc(groomName))
     permutations = list(product(*[count, radius]))
     for p in permutations:
-        filename = deltaOutPath(groomName)+"dh_coil_{}c{}r.xgd".format(p[0], p[1])
+        filename = deltaOutPath(groomName)+"dh_coil_{}count_{}radius.xgd".format(p[0], p[1])
         file_reset(filename)
         print(filename)
         for desc in palettes:
@@ -247,19 +249,65 @@ def dh_wind(groomName,
 # namelist = ["SimonYuen", "WandaEdwards"]
 # for groomName in namelist:
 #     dh_wind(groomName, direction=[2, .2, 1], stiffness=[0.3, .6], constStrength=[2])
-
-# for groomName in get_grooms(sourcePath):
+# print(np.arange(1, 5.1, .5))
+# ignoreList = ['turntableQC', 'image_DB', '0000_base_delta']
+# for groomName in [x for x in get_grooms(sourcePath) if x not in ignoreList]:
 #     expList = [
-#         dh_exp_gScale(groomName, np.arange(.1, 3.1, .5)),
-#         dh_noise_gen(groomName, np.arange(.1, 5.1, .5), np.arange(.1, 5.1, .5)),
+#         # dh_exp_gScale(groomName, np.arange(.1, 5.1, .5)),
+#         # dh_noise_gen(groomName, np.arange(.1, 15.1, 1), np.arange(.1, 15.1, 1)),
 #         # dh_cutClamp_gen(groomName, fit(2, 10, 5, 1)),
-#         dh_cutPercent_gen(groomName, np.arange(.1, 1, .1)),
-#         dh_coil_gen(groomName, np.arange(.5, 5.1, .5), np.arange(.1, 4.1, .5)),
-#         dh_wind(groomName, direction=[2, .2, 1], constStrength=np.arange(.1, 4.1, .5))
+#         # dh_cutPercent_gen(groomName, np.arange(.1, 1, .1)),
+#         # dh_coil_gen(groomName, np.arange(.1, 15.1, 1), np.arange(.1, 15.1, 1)),
+#         # dh_wind(groomName, direction=[2, .2, 1], constStrength=np.arange(.1, 4.1, .5))
 #     ]
 
 
 # clean_deltas()
 # exclude = ["turntableQC", "0000_base_delta"]
-print(get_grooms())
+# print(sorted(get_grooms()))
+
+
+
+# render matrix of coilCount^2 for each coilRadius.  Same with noise
+
+coilCount_list = [.5, 1, 3, 5, 8, 13]
+coilRadius_list = [.2, .5, 1, 2, 3]
+
+noisFreq_list = [.1, .5, 1, 3, 5, 8, 13]
+noisMag_list = [1, 2, 3, 5, 8, 13]
+
+ar_cutlength = [5, 10, 15, 20, 25, 30]
+gScale_list = [0.6, 1.0, 1.3, 1.6, 2]
+namelist = ['AliceRivera',
+    'AmandaMoore',
+    'CamilaMazurek',
+    'ChrisHemsworth',
+    'JasonMomoa',
+    'JenniferMendez',
+    'KamilaTen',
+    'KarenBennet',
+    'LouisPrice',
+    'LucyMae',
+    'LynneLerner',
+    'ManuelTucker',
+    'MonstaXJooheon',
+    'PaulSamatar',
+    'PhilipAn',
+    'RonaldNelson',
+    'ScottPerry',
+    'SimonYuen',
+    'VeronicaYoung',
+    'WandaEdwards']
+
+
+
+for groomName in namelist[5:]:
+    print(groomName)
+
+    dh_coil_gen(groomName, coilCount_list, coilRadius_list)
+    dh_noise_gen(groomName, noisFreq_list, noisMag_list, [0.5])
+    dh_cutClamp_gen(groomName, ar_cutlength, 1)
+    dh_cutPercent_gen(groomName, [.3, .6, .9])
+    dh_exp_gScale(groomName, gScale_list)
+
 

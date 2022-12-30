@@ -72,6 +72,7 @@ def get_deltas():
 
 
 # ROOT DIRECTORY
+print("begin! debug")
 groom_path = mc.fileDialog2(cap="CHOOSE UR GROOM", fm=1, dir="G:/Shared drives/TriplegangersGroom_ext/Groom_INTERNAL/")
 project_path = "/".join(groom_path[0].split("/")[:-2])
 delta_path = "/".join(groom_path[0].split("/")[:-1])+"/deltaGen/"
@@ -128,9 +129,12 @@ for path in enumerate(pathcombos, 0):
     # with open(txt_path, 'w') as f:
     #     f.write("{0}\n{1}".format(namecombos[path[0]][0], namecombos[path[0]][1]))
     file_open(groom_path) # open groom
+    print("fileopen")
     file_ref(turntable_path) # reference lighting Turntable
+    print("file referenced")
     mc.sets("scalpHiHead", fe="head_mtlSG")
     apply_delta_from_paths("head_coll", [path[1][0], path[1][1]])
+    print("apply deltas")
     mc.currentTime(1002, edit=True)
     # RENDER SETTINGS 
     mc.setAttr('defaultArnoldRenderOptions.AASamples', 6)
