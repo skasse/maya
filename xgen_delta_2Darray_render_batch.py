@@ -196,78 +196,104 @@ def render(groom_path, dx:list(), dy:list(), resolution:int = 2048):
     with open("C:/Scripts/maya/xgen_renderSettings.json") as infile:
         rendersettings = json.load(infile)
     ######
-
+    import time
     print("creating render matrix from {0} and {1}".format(dx[1], dy[1]))
     sequence_start = datetime.now()
     print("begin!")
-    for path in enumerate(pathcombos, 0):
-        img_path = f'{render_path}delta.{path[0]+1:04}'
-        if not os.path.isfile(f'{img_path}_1.tif'):
-            # print("image.{0}.txt: writing {1}".format(path[0]+1, namecombos[path[0]]))
-            # txt_path = "{0}delta.{1}.txt".format(render_path, path[0]+1)
-            # with open(txt_path, 'w') as f:
-            #     f.write("{0}\n{1}".format(namecombos[path[0]][0], namecombos[path[0]][1]))
-            file_open(groom_path) # open groom
-            print("fileopen")
-            file_ref(turntable_path) # reference lighting Turntable
-            print("file referenced")
-            mc.sets("scalpHiHead", fe="head_mtlSG")
-            apply_delta_from_paths("head_coll", [path[1][0], path[1][1]])
-            print("apply deltas")
-            mc.currentTime(1002, edit=True)
-            # RENDER SETTINGS 
-            mc.setAttr('defaultArnoldRenderOptions.AASamples', 6)
-            mc.setAttr('defaultArnoldRenderOptions.GIDiffuseSamples', 5)
-            mc.setAttr('defaultArnoldRenderOptions.GISpecularSamples', 5)
-            mc.setAttr('defaultArnoldRenderOptions.GITransmissionSamples', 5)
-            mc.setAttr('defaultArnoldRenderOptions.GISssSamples', 5)
-            # mc.setAttr("defaultArnoldDriver.mergeAOVs", 1)
-            # aovs.AOVInterface().addAOV('RGBA')
-            # aovs.AOVInterface().addAOV('Z')
-            mc.setAttr("defaultRenderGlobals.imageFilePrefix", img_path, type="string")
-            mc.setAttr("defaultArnoldRenderOptions.renderDevice", 1) #enable GPU
-            mc.setAttr("defaultRenderGlobals.animationRange", 0)
-            mc.setAttr("defaultRenderGlobals.startFrame", startFrame)
-            mc.setAttr("defaultRenderGlobals.endFrame", endFrame)
-            mc.setAttr("defaultArnoldDriver.ai_translator", "tif", type="string")
-            mc.setAttr("defaultRenderGlobals.animation", 0)
-            mc.setAttr("perspShape.renderable", 0)
-            mc.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
-            mc.setAttr("defaultResolution.width", renderWidth)
-            mc.setAttr("defaultResolution.height", renderHeight)
-            mc.setAttr("defaultResolution.deviceAspectRatio", 1)
-            image_start = datetime.now()
-            print("rendering {0} out of {1}".format(path[0]+1, len(pathcombos)))
-            print("rendering delta {}".format([d.split("/")[-1] for d in [path[1][0], path[1][1]]]))
-            print("render starting @", image_start)
-            mc.arnoldRender(w=renderWidth, h=renderHeight, seq="1002", b=False)#, cam=camera)
-            image_end = datetime.now()
-            print("render complete @", image_end)
-            print("render time was", image_end - image_start)
-            print("render output path = {}".format(img_path))
+    mc.progressWindow(isInterruptable=1)
+    keep_running = True
+    def quit_loop():
+        global keep_running
+        keep_running = False
+    while keep_running:
+        for path in enumerate(pathcombos, 1):
+            progress_amount = int(((path[0])/len(pathcombos)*100))
+            mc.progressWindow(edit=True, progress=progress_amount, status=f'rendering {path[0]} out of {len(pathcombos)}')
+            time.sleep(1)
+            if mc.progressWindow(query=1, isCancelled=1):
+                quit_loop()
+                break
+            img_path = f'{render_path}delta.{path[0]:04}'
+            if not os.path.isfile(f'{img_path}_1.tif'):
+                # print("image.{0}.txt: writing {1}".format(path[0]+1, namecombos[path[0]]))
+                # txt_path = "{0}delta.{1}.txt".format(render_path, path[0]+1)
+                # with open(txt_path, 'w') as f:
+                #     f.write("{0}\n{1}".format(namecombos[path[0]][0], namecombos[path[0]][1]))
+                file_open(groom_path) # open groom
+                print("fileopen")
+                if mc.progressWindow(query=1, isCancelled=1) :
+                    quit_loop()
+                    break    
+                file_ref(turntable_path) # reference lighting Turntable
+                print("file referenced")
+                if mc.progressWindow(query=1, isCancelled=1) :
+                    quit_loop()
+                    break
+                mc.sets("scalpHiHead", fe="head_mtlSG")
+                apply_delta_from_paths("head_coll", [path[1][0], path[1][1]])
+                print("apply deltas")
+                mc.currentTime(1002, edit=True)
+                # RENDER SETTINGS 
+                mc.setAttr('defaultArnoldRenderOptions.AASamples', 6)
+                mc.setAttr('defaultArnoldRenderOptions.GIDiffuseSamples', 5)
+                mc.setAttr('defaultArnoldRenderOptions.GISpecularSamples', 5)
+                mc.setAttr('defaultArnoldRenderOptions.GITransmissionSamples', 5)
+                mc.setAttr('defaultArnoldRenderOptions.GISssSamples', 5)
+                # mc.setAttr("defaultArnoldDriver.mergeAOVs", 1)
+                # aovs.AOVInterface().addAOV('RGBA')
+                # aovs.AOVInterface().addAOV('Z')
+                mc.setAttr("defaultRenderGlobals.imageFilePrefix", img_path, type="string")
+                mc.setAttr("defaultArnoldRenderOptions.renderDevice", 1) #enable GPU
+                mc.setAttr("defaultRenderGlobals.animationRange", 0)
+                mc.setAttr("defaultRenderGlobals.startFrame", startFrame)
+                mc.setAttr("defaultRenderGlobals.endFrame", endFrame)
+                mc.setAttr("defaultArnoldDriver.ai_translator", "tif", type="string")
+                mc.setAttr("defaultRenderGlobals.animation", 0)
+                mc.setAttr("perspShape.renderable", 0)
+                mc.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
+                mc.setAttr("defaultResolution.width", renderWidth)
+                mc.setAttr("defaultResolution.height", renderHeight)
+                mc.setAttr("defaultResolution.deviceAspectRatio", 1)
+                image_start = datetime.now()
+                print("rendering {0} out of {1}".format(path[0], len(pathcombos)))
+                print("rendering delta {}".format([d.split("/")[-1] for d in [path[1][0], path[1][1]]]))
+                print("render starting @", image_start)
+                mc.arnoldRender(w=renderWidth, h=renderHeight, seq="1002", b=False)#, cam=camera)
+                image_end = datetime.now()
+                print("render complete @", image_end)
+                print("render time was", image_end - image_start)
+                print("render output path = {}".format(img_path))
+                if mc.progressWindow(query=1, isCancelled=1) :
+                    quit_loop()
+                    break
+            if mc.progressWindow(query=1, isCancelled=1):
+                quit_loop()
+                break
+            else:
+                print(f'{img_path} exists.  Skipping render')
+        print("sequence complete:\ntotal render time was: {0}\navg render time was:{1}".format(
+            datetime.now() - sequence_start, (datetime.now() - sequence_start)/len(pathcombos)))
+        if mc.progressWindow(query=1, isCancelled=1) :
+            quit_loop()
+            break
+
+        if not os.path.isfile(f'{render_path}contactSheet.png'):
+            print("Beginning comp in Nuke.  Launching Nuke Now")
+            # write inputs and metadata
+
+            # render images
+
+            # render contact sheet
+            from subprocess import Popen, PIPE
+            process = Popen(["C:/Program Files/Nuke13.2v4/Nuke13.2.exe", "--nukex", "-x", "-i", "C:/Scripts/nuke/runonstart.py", project_dir, "1,1"], stdout=PIPE, stderr=PIPE)
+            stdout,stderr = process.communicate()
+            print(stdout)
+
+            print("***RENDERING COMPLETE***")
+            print(render_path)
         else:
-            print(f'{img_path} exists.  Skipping render')
-    print("sequence complete:\ntotal render time was: {0}\navg render time was:{1}".format(
-        datetime.now() - sequence_start, (datetime.now() - sequence_start)/len(pathcombos)))
-
-
-
-    if not os.path.isfile(f'{render_path}contactSheet.png'):
-        print("Beginning comp in Nuke.  Launching Nuke Now")
-        # write inputs and metadata
-
-        # render images
-
-        # render contact sheet
-        from subprocess import Popen, PIPE
-        process = Popen(["C:/Program Files/Nuke13.2v4/Nuke13.2.exe", "--nukex", "-x", "-i", "C:/Scripts/nuke/runonstart.py", project_dir, "1,1"], stdout=PIPE, stderr=PIPE)
-        stdout,stderr = process.communicate()
-        print(stdout)
-
-        print("***RENDERING COMPLETE***")
-        print(render_path)
-    else:
-        print("contactSheet exists. skipping render")
+            print("contactSheet exists. skipping render")[;'']
+    mc.progressWindow(endProgress=1)
 
 
 
