@@ -16,18 +16,21 @@ maPath = "/maya/base/scenes/base.ma"
 deltaPath = "maya/base_delta/scenes/deltaGen/"
 
 
-def dc_extract(groomName):
-    """parses ma file looking for collections and descriptions.  returns dictionary"""
-    sourcePath = "G:/Shared drives/TriplegangersGroom_ext/Groom_INTERNAL/{}/maya/base/scenes/".format(groomName)
+def __dc_extract(groomName) -> dict:
+    """
+    parses may .ma file looking for collections and descriptions
+    returns {"collection": "desc1", "desc2", "etc"}"
+    """
+    sourcePath = f"G:/Shared drives/TriplegangersGroom_ext/Groom_INTERNAL/{groomName}/maya/base/scenes/"
     xgPath = sourcePath+"/base__head.xgen"
     maPath = sourcePath+"/base.ma"
     descPattern = r'[A-Za-z]*Desc\b'
     collPattern = r'base__.*.xgen'
 
-    def descOut(filename,  pattern):
+    def descOut(filename,  pattern) -> list:
         s = None
         with open(filename, 'r') as f:
-            s = f.read()#.splitlines()
+            s = f.read()
         return list(set(re.findall(pattern, s)))
 
     collections = {}
@@ -37,12 +40,12 @@ def dc_extract(groomName):
         return collections
 
 
-def gather_palettes(paths:list="", discard:list=""):
-    """ iterate thru all grooms and create sets of coll(s) and desc(s) and discard(s)"""
+def gather_palettes(paths:list="", discard:list="") -> tuple[set, list, list]:
+    """ iterate thru all paths/grooms and create sets of coll(s) and desc(s) and discard(s)"""
     colls = set()
     descs = set()
     for groom in paths:
-        palettes = dc_extract(groom)
+        palettes = __dc_extract(groom)
         if palettes:
             # print(palettes)
             for key in palettes:
@@ -72,19 +75,6 @@ def get_grooms(path:str=sourcePath, name:str="**"):
     return groomList
 
 
-
-def fit(min, max, length, decimals):
-    step = (max - min)/length
-    x = [round(x, decimals) for x in np.arange(min, max, step)]
-    return(x)
-
-def deltaOutPath(groomName):
-    outputPath = "{0}{1}/{2}".format(sourcePath, groomName, deltaPath)
-    if not os.path.exists(outputPath):
-        os.makedirs(outputPath)
-        print("created dir:", outputPath)
-    return outputPath
-
 def get_desc(groomName):
     xgenPath =  "{}{}{}".format(sourcePath, groomName, xgPath)
     desc_names=[]
@@ -97,6 +87,22 @@ def get_desc(groomName):
             desc_names.append(lines[i+1].rpartition("\t")[2].rstrip("\n"))
     return desc_names
 
+
+def fit(min, max, length, decimals):
+    step = (max - min)/length
+    x = [round(x, decimals) for x in np.arange(min, max, step)]
+    return(x)
+
+
+def deltaOutPath(groomName):
+    outputPath = "{0}{1}/{2}".format(sourcePath, groomName, deltaPath)
+    if not os.path.exists(outputPath):
+        os.makedirs(outputPath)
+        print("created dir:", outputPath)
+    return outputPath
+
+
+
 def __load_config():
     """open config file with read + binary"""
     with open(sourcePath+configPath+configFile, 'rb') as f:
@@ -104,12 +110,6 @@ def __load_config():
     return config
 
 
-def prune(desc:list="", discard:list=["eye", "baby"]):
-    """ with input list, remove discards """
-    descp = [x for x in desc if not any(word in x.lower() for word in discard)]
-    discards = [x for x in desc if any(word in x.lower() for word in discard)]
-    print("retained:", descp), print("discarded:", discards)
-    return descp
 
 
 def file_reset(filename:str=""):
@@ -301,13 +301,18 @@ namelist = ['AliceRivera',
 
 
 
-for groomName in namelist[5:]:
-    print(groomName)
+# for groomName in namelist[1]:
+#     print(groomName)
+groomName = 'CamilaMazurek'
+# dh_coil_gen(groomName, coilCount_list, coilRadius_list)
+# dh_noise_gen(groomName, noisFreq_list, noisMag_list, [0.5])
+dh_cutClamp_gen(groomName, ar_cutlength, 1)
+# dh_cutPercent_gen(groomName, [.3, .6, .9])
+# dh_exp_gScale(groomName, gScale_list)
 
-    dh_coil_gen(groomName, coilCount_list, coilRadius_list)
-    dh_noise_gen(groomName, noisFreq_list, noisMag_list, [0.5])
-    dh_cutClamp_gen(groomName, ar_cutlength, 1)
-    dh_cutPercent_gen(groomName, [.3, .6, .9])
-    dh_exp_gScale(groomName, gScale_list)
 
 
+'''
+Notes:
+rampUI(xpos (0.0), ypos (1.0), interpolation(0-3)
+'''
