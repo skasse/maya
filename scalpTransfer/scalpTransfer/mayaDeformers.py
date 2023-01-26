@@ -69,4 +69,48 @@ def shrinkWrap(mesh, target, **kwargs):
     mc.select(clear=True)
     return shrinkwrapNode
 
-# shrinkWrap(base_mesh, target_mesh)
+def wrap(mesh, target, **kwargs):
+
+    targetMesh = getTargetMesh(target) # find a not intermediate shape
+    baseShape = mc.duplicate(target, name=target+'Base')[0]
+    mc.hide(baseShape)
+
+    # Find all the surf transforms that have been selected
+    surf = mc.listRelatives(mesh, path=True)
+
+    surface = surf[0]
+    
+    # SET A BUNCH OF ATTRIBUTES WITH KWARGS or with default value    
+    autoWeightThreshold = kwargs.get('autoWeightThreshold') or 1
+    maxDistance = kwargs.get('maxDistance') or 1
+    weightThreshold = kwargs.get('weightThreshold') or 0
+    exclusiveBind = kwargs.get('exclusiveBind') or 1
+    falloffMode = kwargs.get('falloffMode') or 0
+
+
+    wrapNode = mc.deformer(surface, type='wrap')[0]
+
+    mc.setAttr(wrapNode + ".autoWeightThreshold", autoWeightThreshold)
+    mc.setAttr(wrapNode + ".maxDistance", maxDistance)
+    mc.setAttr(wrapNode + ".weightThreshold", weightThreshold)
+    mc.setAttr(wrapNode + ".exclusiveBind", exclusiveBind)
+    mc.setAttr(wrapNode + ".falloffMode", falloffMode)
+
+    # Add the target object
+    #
+    mc.connectAttr(targetMesh + ".worldMesh[0]", wrapNode + ".driverPoints[0]")
+    mc.connectAttr(surface + ".worldMatrix[0]", wrapNode + ".geomMatrix")
+    # connect up the smooth target attributes
+    # so the smoothed target follows the target shape's settings
+    #
+    attrs = {'dropoff':['double', 4], 'inflType':['short', 2], 'smoothness':['double', 0]}
+    for k,v in attrs.items():
+        mc.addAttr(target, longName=k, attributeType=v[0], defaultValue=v[1], )
+    mc.connectAttr(target + ".dropoff", wrapNode + ".dropoff[0]")
+    mc.connectAttr(target + ".smoothness", wrapNode + ".smoothness[0]")
+    mc.connectAttr(target + ".inflType", wrapNode + ".inflType[0]")
+    mc.connectAttr(f'{baseShape}Shape' + ".worldMesh[0]", wrapNode + ".basePoints[0]")
+
+
+    mc.select(clear=True)
+    return wrapNode
