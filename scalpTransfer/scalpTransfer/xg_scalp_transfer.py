@@ -1,7 +1,9 @@
 
 
 
+sys.path.append("C:/Scripts/maya/scalpTransfer/scalpTransfer")
 import maya.cmds as mc
+import mayaDeformers as md
 
 string = f'complete'
 print(string)
@@ -9,79 +11,6 @@ target_file_path = "G:/Shared drives/TriplegangersGroom_ext/users/skassekert/xge
 
 base_mesh = "scalp_head_hi"
 target_mesh = "target_mesh"
-
-
-# if topo doesn't match, but shape is close
-def file_ref(path):
-    mc.file(path, iv=1, gl=1, mnc=1, ns=":", options="v=0", reference=1)
-
-
-def getTargetMesh(targetTrans=str):
-
-    sh = mc.ls(targetTrans, dag=True, shapes=True)
-    # Find if at least one of them is an allowable target type
-    for s in sh:
-        io = mc.getAttr(s+".io")
-        if io:
-            continue
-
-        mtype = mc.nodeType(s)
-        if mtype == "mesh":
-            return s
-    return None
-
-def shrinkWrap(mesh, target, **kwargs):
-
-    targetMesh = getTargetMesh(target) # find a not intermediate shape
-
-    # Find all the surf transforms that have been selected
-    surf = mc.listRelatives(mesh, path=True)
-
-    surface = surf[0]
-    
-    # SET A BUNCH OF ATTRIBUTES WITH KWARGS or with default value    
-    projection = kwargs.get('projection') or 3
-    closestIfNoIntersection = kwargs.get('closestIfNoIntersection') or 1
-    reverse = kwargs.get('reverse') or 0
-    bidirectional = kwargs.get('bidirectional') or 1
-    boundingBoxCenter = kwargs.get('boundingBoxCenter') or 1
-    axisReference = kwargs.get('axisReference') or 0
-    alongX = kwargs.get('alongX') or 0
-    alongY = kwargs.get('alongY') or 0
-    alongZ = kwargs.get('alongZ') or 0
-    offset = kwargs.get('offset') or 0
-    targetInflation = kwargs.get('targetInflation') or 0
-
-    shrinkwrapNode = mc.deformer(surface, type='shrinkWrap')[0]
-
-    mc.setAttr(shrinkwrapNode + ".projection", projection)
-    mc.setAttr(shrinkwrapNode + ".closestIfNoIntersection", closestIfNoIntersection)
-    mc.setAttr(shrinkwrapNode + ".reverse", reverse)
-    mc.setAttr(shrinkwrapNode + ".bidirectional", bidirectional)
-    mc.setAttr(shrinkwrapNode + ".boundingBoxCenter", boundingBoxCenter)
-    mc.setAttr(shrinkwrapNode + ".axisReference", axisReference)
-    mc.setAttr(shrinkwrapNode + ".alongX", alongX)
-    mc.setAttr(shrinkwrapNode + ".alongY", alongY)
-    mc.setAttr(shrinkwrapNode + ".alongZ", alongZ)
-    mc.setAttr(shrinkwrapNode + ".offset", offset)
-    mc.setAttr(shrinkwrapNode + ".targetInflation", targetInflation)
-
-    # Add the target object
-    #
-    mc.connectAttr(targetMesh + ".w", shrinkwrapNode + ".tgt")
-    # connect up the smooth target attributes
-    # so the smoothed target follows the target shape's settings
-    #
-    mc.connectAttr(targetMesh + ".co", shrinkwrapNode + ".co")
-    mc.connectAttr(targetMesh + ".suv", shrinkwrapNode + ".suv")
-    mc.connectAttr(targetMesh + ".kb", shrinkwrapNode + ".kb")
-    mc.connectAttr(targetMesh + ".bnr", shrinkwrapNode + ".bnr")
-    mc.connectAttr(targetMesh + ".khe", shrinkwrapNode + ".khe")
-    mc.connectAttr(targetMesh + ".peh", shrinkwrapNode + ".peh")
-    mc.connectAttr(targetMesh + ".kmb", shrinkwrapNode + ".kmb")
-
-    mc.select(clear=True)
-    return shrinkwrapNode
 
 # shrinkWrap(base_mesh, target_mesh)
 
@@ -115,3 +44,73 @@ mc.xgmPreview(xg.descriptions())
 xg.palettes()
 
 
+
+
+
+
+
+mc.xgmPreview(xg.descriptions(), c=True)
+
+mc.ls(["*", "*:*"], type="mesh")
+
+# target mesh file path
+path = fr"G:\Shared drives\TriplegangersGroom_ext\users\skassekert\xgen_transferring\maya\scenes\topo_2_bsTarget.ma"
+
+# import mesh target
+target_mesh = mc.file(path, iv=1, mnc=1, ns=":", i=True, rnn=True)
+
+# create blendshape and activate
+blendShapeName = "scalpBlendShape"
+mc.blendShape([target_mesh[0], "scalpHiHead"], automatic=1, name=blendShapeName)
+targetMeshName = target_mesh[0].lstrip("|")
+mc.setAttr(f'{blendShapeName}.{targetMeshName}', 1)
+
+descriptions = [x for x in mc.listConnections("scalpHi*.worldMesh") if "scalpBlendShape" not in x]
+# disconnect mesh from descriptions
+for desc in descriptions:
+    mc.disconnectAttr(f'{desc.split("_")[0]}Shape.worldMesh[0]', f'{desc}Shape.geometry')
+
+# delete history
+mc.delete("scalpHiHead", ch=True)
+
+# connect mesh to descriptions
+for desc in descriptions:
+    mc.connectAttr(f'{desc.split("_")[0]}Shape.worldMesh[0]', f'{desc}Shape.geometry')
+
+# remove target mesh from scene
+mc.delete(targetMeshName)
+
+# update xgen preview
+mc.xgmPreview(xg.descriptions(), c=True, pb=True)
+
+
+
+mc.objectType(mc.ls(sl=1))
+
+
+wrapDeformer = mc.deformer("scalpHiPony", type="wrap")[0]
+
+
+
+
+path = fr"G:\Shared drives\TriplegangersGroom_ext\users\skassekert\xgen_transferring\maya\scenes\topo_2_bsTarget.ma"
+
+imports = mc.file(path, i=1, mnc=1, ns=":", rnn=1)
+
+mark_v1 = 'mark_v1_bst'
+mark_v2 = 'mark_v2_bst'
+
+# create blendshape and activate for scalp
+blendShapeName = "scalpBlendShape"
+source, target = mark_v1, "scalpHiHead"
+mc.blendShape([source, target], automatic=1, name=blendShapeName)
+mc.setAttr(f'{blendShapeName}.{source}', 1)
+
+md.shrinkWrap(mark_v1, mark_v2, projection=4)
+mc.delete(mark_v1, ch=1)
+md.wrap(mark_v1, mark_v2)
+
+blendShapeName2 = "charXferBlendShape"
+groomXferMorphs = ['target_01_bst', 'target_02_bst']
+groomXferMorphs.extend([mark_v2])
+mc.blendShape(groomXferMorphs, automatic=1, name=blendShapeName2)

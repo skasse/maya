@@ -278,7 +278,6 @@ delta_path = "/".join(groom_path[0].split("/")[:-1])+"/deltaGen/"
 deltas = delta_retrieval(delta_path)
 for delta in deltas["dh_noise"]:
     # renders identity matrix of each delta
-    # print(delta)
     render(groom_path, delta, delta)
 for delta in deltas["dh_coil"]:
     # renders identity matrix of each delta

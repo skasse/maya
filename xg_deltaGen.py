@@ -111,21 +111,19 @@ def __load_config():
 
 
 
-
 def file_reset(filename:str=""):
     with open(filename, 'w') as f:
         f.write("")
         f.close()
 
 
-def clean_deltas():
+def clean_deltas(groomName:str = '**'):
     """removes all ../scenes/delta/ folders"""
     import shutil
-    for groom in get_grooms(sourcePath):
+    for groom in get_grooms(sourcePath, groomName):
         print(groom)
         shutil.rmtree(deltaOutPath(groom))
     print("clean complete")
-
 
 def dh_coil_gen(groomName, count:list = "", radius:list = ""):
     """gets descriptions from groomName and outputs array of xgd from count/radius"""
@@ -147,7 +145,6 @@ def dh_coil_gen(groomName, count:list = "", radius:list = ""):
                 modifier = modifier.replace("<radius>", str(p[1]))
                 f.write(modifier)
                 
-
 def dh_cutClamp_gen(groomName, cutLength:list = "", mask:float=1.0):
     """gets descriptions from groomName and outputs array of xgd from count/radius"""
     palettes = prune(get_desc(groomName))
@@ -194,7 +191,6 @@ def dh_noise_gen(groomName, frequency:list="", magnitude:list="", correlation:li
                         modifier = modifier.replace("<correlation>", str(corr))
                         f.write(modifier)  
 
-
 def dh_exp_gScale(groomName, gScale:list=""):
     """outputs expression for each desc in groom"""
     palettes = prune(get_desc(groomName))
@@ -208,7 +204,6 @@ def dh_exp_gScale(groomName, gScale:list=""):
                 modifier = modifier.replace("<xgenDescName>", desc)
                 modifier = modifier.replace("<gScale>", str(scale))
                 f.write(modifier)  
-
 
 def dh_wind(groomName, 
     direction:list=[1.0, 0.0, 0.0],
@@ -240,31 +235,6 @@ def dh_wind(groomName,
                 modifier = modifier.replace("<shearStrength>", str(p[4]))
                 modifier = modifier.replace("<seed>", str(p[5]))
                 f.write(modifier)  
-
-
-
-### example usage
-
-# groomName = get_grooms(sourcePath)
-# namelist = ["SimonYuen", "WandaEdwards"]
-# for groomName in namelist:
-#     dh_wind(groomName, direction=[2, .2, 1], stiffness=[0.3, .6], constStrength=[2])
-# print(np.arange(1, 5.1, .5))
-# ignoreList = ['turntableQC', 'image_DB', '0000_base_delta']
-# for groomName in [x for x in get_grooms(sourcePath) if x not in ignoreList]:
-#     expList = [
-#         # dh_exp_gScale(groomName, np.arange(.1, 5.1, .5)),
-#         # dh_noise_gen(groomName, np.arange(.1, 15.1, 1), np.arange(.1, 15.1, 1)),
-#         # dh_cutClamp_gen(groomName, fit(2, 10, 5, 1)),
-#         # dh_cutPercent_gen(groomName, np.arange(.1, 1, .1)),
-#         # dh_coil_gen(groomName, np.arange(.1, 15.1, 1), np.arange(.1, 15.1, 1)),
-#         # dh_wind(groomName, direction=[2, .2, 1], constStrength=np.arange(.1, 4.1, .5))
-#     ]
-
-
-# clean_deltas()
-# exclude = ["turntableQC", "0000_base_delta"]
-# print(sorted(get_grooms()))
 
 
 
@@ -301,14 +271,12 @@ namelist = ['AliceRivera',
 
 
 
-# for groomName in namelist[1]:
-#     print(groomName)
 groomName = 'CamilaMazurek'
-# dh_coil_gen(groomName, coilCount_list, coilRadius_list)
-# dh_noise_gen(groomName, noisFreq_list, noisMag_list, [0.5])
+dh_coil_gen(groomName, coilCount_list, coilRadius_list)
+dh_noise_gen(groomName, noisFreq_list, noisMag_list, [0.5])
 dh_cutClamp_gen(groomName, ar_cutlength, 1)
-# dh_cutPercent_gen(groomName, [.3, .6, .9])
-# dh_exp_gScale(groomName, gScale_list)
+dh_cutPercent_gen(groomName, [.3, .6, .9])
+dh_exp_gScale(groomName, gScale_list)
 
 
 
