@@ -28,17 +28,23 @@ def xg_scalp_transfer(**kwargs):
     mc.blendShape([newChar, mark_v2], automatic=1, name=bsName2)
     mc.setAttr(f'{bsName2}.{newChar}', 1)
 
-    descriptions = [x for x in mc.listConnections("scalpHi*.worldMesh") if not any( w in x for w in ["scalpBlendShape", 'groupParts1'])]
-    # disconnect mesh from descriptions
-    for desc in descriptions:
-        mc.disconnectAttr(f'{desc.split("_")[0]}Shape.worldMesh[0]', f'{desc}Shape.geometry')
+    # delete history from scalp before export
+    def shampoo(**kwargs):
+        scalp = kwargs.get('scalp') or 'scalpHiHead'
+        ignore_list = ["scalpBlendShape", 'groupParts1']
+        descriptions = [x for x in mc.listConnections(f'{scalp}.worldMesh') if not any( w in x for w in ignore_list)]
+        # disconnect mesh from descriptions
+        for desc in descriptions:
+            mc.disconnectAttr(f'{desc.split("_")[0]}Shape.worldMesh[0]', f'{desc}Shape.geometry')
 
-    # delete history
-    mc.delete("scalpHiHead", ch=True)
+        # delete history
+        mc.delete(scalp, ch=True)
 
-    # connect mesh to descriptions
-    for desc in descriptions:
-        mc.connectAttr(f'{desc.split("_")[0]}Shape.worldMesh[0]', f'{desc}Shape.geometry')
+        # connect mesh to descriptions
+        for desc in descriptions:
+            mc.connectAttr(f'{desc.split("_")[0]}Shape.worldMesh[0]', f'{desc}Shape.geometry')
 
-    # remove target mesh from scene
-    mc.delete([mark_v1, mark_v2, newChar])
+        # remove target mesh from scene
+        mc.delete([mark_v1, mark_v2, newChar])
+    shampoo()
+    print('xgen scalp transfer complete')

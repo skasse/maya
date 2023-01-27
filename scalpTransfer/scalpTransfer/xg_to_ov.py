@@ -1,4 +1,5 @@
 import maya.cmds as mc
+import maya.mel as mm
 
 def legacy2Igs(collection):
     '''convert all xgen legacy groom to igs
