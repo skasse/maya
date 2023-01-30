@@ -87,7 +87,6 @@ def wrap(mesh, target, **kwargs):
     exclusiveBind = kwargs.get('exclusiveBind') or 1
     falloffMode = kwargs.get('falloffMode') or 0
 
-
     wrapNode = mc.deformer(surface, type='wrap')[0]
 
     mc.setAttr(wrapNode + ".autoWeightThreshold", autoWeightThreshold)
@@ -96,21 +95,24 @@ def wrap(mesh, target, **kwargs):
     mc.setAttr(wrapNode + ".exclusiveBind", exclusiveBind)
     mc.setAttr(wrapNode + ".falloffMode", falloffMode)
 
-    # Add the target object
-    #
     mc.connectAttr(targetMesh + ".worldMesh[0]", wrapNode + ".driverPoints[0]")
     mc.connectAttr(surface + ".worldMatrix[0]", wrapNode + ".geomMatrix")
-    # connect up the smooth target attributes
-    # so the smoothed target follows the target shape's settings
-    #
+
+    # create missing attr on target transform
     attrs = {'dropoff':['double', 4], 'inflType':['short', 2], 'smoothness':['double', 0]}
     for k,v in attrs.items():
         mc.addAttr(target, longName=k, attributeType=v[0], defaultValue=v[1], )
-    mc.connectAttr(target + ".dropoff", wrapNode + ".dropoff[0]")
-    mc.connectAttr(target + ".smoothness", wrapNode + ".smoothness[0]")
-    mc.connectAttr(target + ".inflType", wrapNode + ".inflType[0]")
-    mc.connectAttr(f'{baseShape}Shape' + ".worldMesh[0]", wrapNode + ".basePoints[0]")
+    
+    # connect attributes
+    attr_tuple = (
+        ['.dropoff', '.dropoff[0]'],
+        ['.smoothness', '.smoothness[0]'],
+        ['.inflType', '.inflType[0]']
+    )
+    for attr in attr_tuple:
+        mc.connectAttr(f'{target}{attr[0]}', f'{wrapNode}{attr[1]}')
 
+    mc.connectAttr(f'{baseShape}Shape.worldMesh[0]', f'{wrapNode}.basePoints[0]')
 
     mc.select(clear=True)
     return wrapNode

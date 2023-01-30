@@ -61,4 +61,5 @@ def main(**kwargs):
     items.append(kwargs.get(scalpGeo))
     mc.select(items)
     exportIgs2Usd(outPath,select= items)
+    print(f'exported xgen groom to {outPath}')
 

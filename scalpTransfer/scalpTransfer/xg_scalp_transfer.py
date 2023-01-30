@@ -1,16 +1,16 @@
 import maya.cmds as mc
 import mayaDeformers as md
 
-def xg_scalp_transfer(**kwargs):
+def main(**kwargs):
 
     path = 'G:/Shared drives/TriplegangersGroom_ext/users/skassekert/xgen_transferring/maya/scenes/'
 
-    def abcImport(path):
+    def _abcImport(path):
         return mc.file(path, i=1, mnc=1, ns=":", rnn=1)[0].lstrip('|')
 
-    mark_v1 = abcImport(f'{path}mark_v1_bs.abc')
-    mark_v2 = abcImport(f'{path}mark_v2_bs.abc')
-    newChar = abcImport(f'{path}eugene_v2_bs.abc')
+    mark_v1 = _abcImport(f'{path}mark_v1_bs.abc')
+    mark_v2 = _abcImport(f'{path}mark_v2_bs.abc')
+    newChar = _abcImport(f'{path}eugene_v2_bs.abc')
 
     # create blendshape and activate for scalp
     blendShapeName = "scalpBlendShape"
@@ -29,7 +29,7 @@ def xg_scalp_transfer(**kwargs):
     mc.setAttr(f'{bsName2}.{newChar}', 1)
 
     # delete history from scalp before export
-    def shampoo(**kwargs):
+    def _shampoo(**kwargs):
         scalp = kwargs.get('scalp') or 'scalpHiHead'
         ignore_list = ["scalpBlendShape", 'groupParts1']
         descriptions = [x for x in mc.listConnections(f'{scalp}.worldMesh') if not any( w in x for w in ignore_list)]
@@ -46,5 +46,5 @@ def xg_scalp_transfer(**kwargs):
 
         # remove target mesh from scene
         mc.delete([mark_v1, mark_v2, newChar])
-    shampoo()
+    _shampoo()
     print('xgen scalp transfer complete')
