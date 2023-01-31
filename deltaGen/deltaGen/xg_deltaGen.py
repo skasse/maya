@@ -107,7 +107,7 @@ def clean_deltas(groomName:str = '**'):
         shutil.rmtree(deltaOutPath(groom))
     print("clean complete")
 
-def deltaGen(groomName:str, collection:str, modifier:str, **kwargs):
+def deltaGen(groomName:str, collection:list[str], modifier:str, **kwargs):
     """
     take groomName, collection, modifier, and kwargs as input; XGen xgd file as output
 
@@ -121,65 +121,31 @@ def deltaGen(groomName:str, collection:str, modifier:str, **kwargs):
     """
 
     #  get descriptions from groom
-    palettes = prune(__dc_extract(groomName)[collection])
+    for coll in collection:
+        palettes = prune(__dc_extract(groomName)[coll])
 
-    x = [x for x in kwargs] # kwargs list
-    p = product(*[kwargs.get(x) for x in kwargs]) # cartesian product of kwarg values
+        x = [x for x in kwargs] # kwargs list
+        p = product(*[kwargs.get(x) for x in kwargs]) # cartesian product of kwarg values
 
-    for a in p:
-        xpzip = list(zip(x, a))
-        name_list = []
-        for w in xpzip:
-            name_list.extend([w[0][:1],w[1]])
-        filename  = deltaOutPath(groomName)+f'{groomName}__{collection}__{modifier}__{"_".join([str(x) for x in name_list])}.xgd'
-        file_reset(filename)
-        for desc in palettes:
-            with open(filename, 'a') as f:
-                workfile = __load_config()["modifiers"][f'{modifier}'][0]
-                workfile = workfile.replace("<xgenDescName>", desc)
-                for w in xpzip:
-                    workfile = workfile.replace(f'<{w[0]}>', str(w[1]))
-                    # print(f'replacing <{w[0]}> with {str(w[1])}')
-                f.write(workfile)
+        for a in p:
+            xpzip = list(zip(x, a))
+            name_list = []
+            for w in xpzip:
+                name_list.extend([w[0][:1],w[1]])
+            filename  = deltaOutPath(groomName)+f'{groomName}__{coll}__{modifier}__{"_".join([str(x) for x in name_list])}.xgd'
+            file_reset(filename)
+            for desc in palettes:
+                with open(filename, 'a') as f:
+                    workfile = __load_config()["modifiers"][f'{modifier}'][0]
+                    workfile = workfile.replace("<xgenDescName>", desc)
+                    for w in xpzip:
+                        workfile = workfile.replace(f'<{w[0]}>', str(w[1]))
+                        # print(f'replacing <{w[0]}> with {str(w[1])}')
+                    f.write(workfile)
 
 
 
 # render matrix of coilCount^2 for each coilRadius.  Same with noise
-
-coilCount_list = [.5, 1, 3, 5, 8, 13]
-coilRadius_list = [.2, .5, 1, 2, 3]
-
-noisFreq_list = [.1, .5, 1, 3, 5, 8, 13]
-noisMag_list = [1, 2, 3, 5, 8, 13]
-
-ar_cutlength = [5, 10, 15, 20, 25, 30]
-gScale_list = [0.6, 1.0, 1.3, 1.6, 2]
-namelist = ['AliceRivera',
-    'AmandaMoore',
-    'CamilaMazurek',
-    'ChrisHemsworth',
-    'JasonMomoa',
-    'JenniferMendez',
-    'KamilaTen',
-    'KarenBennet',
-    'LouisPrice',
-    'LucyMae',
-    'LynneLerner',
-    'ManuelTucker',
-    'MonstaXJooheon',
-    'PaulSamatar',
-    'PhilipAn',
-    'RonaldNelson',
-    'ScottPerry',
-    'SimonYuen',
-    'VeronicaYoung',
-    'WandaEdwards']
-
-groomName = 'AliceRivera'
-deltaGen(groomName, 'head_coll', 'dh_coil', count=coilCount_list, radius=coilRadius_list)
-deltaGen(groomName, 'head_coll', 'dh_cutClamp', cut_length=ar_cutlength)
-deltaGen(groomName, 'head_coll', 'dh_exp_gScale', gScale=gScale_list)
-deltaGen(groomName, 'head_coll', 'dh_noise', frequency=noisFreq_list, magnitude=noisMag_list)
 
 # groomName = 'CamilaMazurek'
 # dh_coil_gen(groomName, coilCount_list, coilRadius_list)
