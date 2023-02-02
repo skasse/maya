@@ -48,7 +48,6 @@ def prune(desc:list="", discard:list=["eye", "baby"]):
     # print("retained:", descp), print("discarded:", discards)
     return descp
 
-
 def get_grooms(path:str=sourcePath, name:str="**"):
     """ get grooms from source path.  default name = '**' """
     print(f'search path: {path}, name filters: {name}')
@@ -56,7 +55,6 @@ def get_grooms(path:str=sourcePath, name:str="**"):
     groomList = [x.replace(os.sep, '/').split('/')[-1] for x in glob(path+name)]
     groomList = [x for x in groomList if x not in exclude]
     return groomList
-
 
 def _get_desc(groomName):
     '''
@@ -73,12 +71,10 @@ def _get_desc(groomName):
             desc_names.append(lines[i+1].rpartition("\t")[2].rstrip("\n"))
     return desc_names
 
-
 def fit(min, max, length, decimals):
     step = (max - min)/length
     x = [round(x, decimals) for x in np.arange(min, max, step)]
     return(x)
-
 
 def deltaOutPath(groomName):
     """creates delta output path if its doesnt exist"""
@@ -142,22 +138,3 @@ def deltaGen(groomName:str, collection:list[str], modifier:str, **kwargs):
                         workfile = workfile.replace(f'<{w[0]}>', str(w[1]))
                         # print(f'replacing <{w[0]}> with {str(w[1])}')
                     f.write(workfile)
-
-
-
-# render matrix of coilCount^2 for each coilRadius.  Same with noise
-
-# groomName = 'CamilaMazurek'
-# dh_coil_gen(groomName, coilCount_list, coilRadius_list)
-# dh_noise_gen(groomName, noisFreq_list, noisMag_list, [0.5])
-# dh_cutClamp_gen(groomName, ar_cutlength, 1)
-# dh_cutPercent_gen(groomName, [.3, .6, .9])
-# dh_exp_gScale(groomName, gScale_list)
-
-
-
-'''
-Notes:
-rampUI(xpos (0.0), ypos (1.0), interpolation(0-3): ...)
-rampUI(0.0,0.0,1:1.0,1.0,1)
-'''
