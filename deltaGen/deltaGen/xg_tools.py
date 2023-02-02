@@ -1,7 +1,7 @@
 import maya.cmds as mc
 import os
-import xgenm as xge
-import xgenm.xgGlobal as xgg
+# import xgenm as xge
+# import xgenm.xgGlobal as xgg
 from datetime import datetime, date
 from itertools import product
 from glob import glob
@@ -12,12 +12,18 @@ xgPath = "/maya/base/scenes/base__head_coll.xgen"
 maPath = "/maya/base/scenes/base.ma"
 deltaPath = "maya/base_delta/scenes/deltaGen/"
 
+
+def collExtract(path) -> str:
+    """extracts collection name from file name based on pattern:
+    {name}__{collection}__{modifier}__{attributes}"""
+    return path.split('__')[-3]
+
+
 def xgd_import():
     """ IMPORT XGD """
-    col = mc.ls("*_coll")[0]
     importPath = mc.fileDialog2(fm=4) #open multi files
     for path in importPath:
-        xge.applyDelta(str(col), str(path))
+        xge.applyDelta(collExtract(path), str(path))
     de = xgg.DescriptionEditor
     de.refresh("Full")
 
@@ -91,6 +97,8 @@ def get_deltas(delta_path:str) -> list:
 
 
 def delta_retrieval(path:str) -> dict:
+    """ output dict as follows:
+    {'modifier_name': ['delta_path_x[0:-1]y[0] for y[0:-1]', 'delta_names_extracted'**], ... }"""
     # deltaGen path
     # path = "G:/Shared drives/TriplegangersGroom_ext/Groom_INTERNAL/AmandaMoore/maya/base_delta/scenes/deltaGen"
 
@@ -141,7 +149,7 @@ def delta_retrieval(path:str) -> dict:
         radius_set.add(radius_value)
     # count_list, radius_list = sorted(list(count_set), key=float), sorted(list(radius_set), key=float)
 
-    def sorted_sets(key, *args, **kwargs):
+    def sorted_sets(key, *args):
         arg_list = []
         for arg in args:
             arg_list.append(sorted(list(arg), key=key))
@@ -175,3 +183,12 @@ def get_deltas(delta_path:str) -> list:
     deltas = mc.fileDialog2(cap="CHOOSE UR DELTAS", fm=4, dir = "{}".format(delta_path))
     ids = [x.split("/")[-1].replace(".xgd", "") for x in deltas]
     return deltas, ids
+
+# for k,v in delta_retrieval("G:/Shared drives/TriplegangersGroom_ext/Groom_INTERNAL/AmandaMoore/maya/base_delta/scenes/deltaGen").items():
+    # print(v)
+import pprint
+pp = pprint.PrettyPrinter(indent=1)
+path = "G:/Shared drives/TriplegangersGroom_ext/Groom_INTERNAL/AmandaMoore/maya/base_delta/scenes/deltaGen"
+deltas = delta_retrieval(path)
+# pp.pprint(deltas['dh_exp_gScale'])
+pp.pprint(deltas)
