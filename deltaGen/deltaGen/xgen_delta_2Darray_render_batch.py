@@ -22,7 +22,7 @@ def render(groom_path, dx:list(), dy:list(), resolution:int = 2048):
     namecombos = list(product(*[dx[1], dy[1]]))
 
     xgen_set_prj(project_path, project_path) # set project
-    render_path = img_output_dir(dx[1], dy[1])
+    render_path = img_output_dir(project_path, dx[1], dy[1])
 
     #########
 
@@ -120,10 +120,11 @@ def render(groom_path, dx:list(), dy:list(), resolution:int = 2048):
 
 def main():
     groom_path:list = mc.fileDialog2(cap="CHOOSE UR GROOM", fm=1, dir="G:/Shared drives/TriplegangersGroom_ext/Groom_INTERNAL/")
+    # global project_path
     project_path = "/".join(groom_path[0].split("/")[:-2])
     delta_path = "/".join(groom_path[0].split("/")[:-1])+"/deltaGen/"
 
-    deltas = delta_retrieval(delta_path)
+    deltas = delta_retrieval(delta_path, '_coll')
     for delta in deltas["dh_noise"]:
         # renders identity matrix of each delta
         render(groom_path, delta, delta)
