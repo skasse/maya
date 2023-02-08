@@ -34,8 +34,8 @@ class objectSetExport(object):
     def export_json_sets(self, *args):
         # gather set names to save
         sets_to_save = None
-        print(f'{"BEGIN":=^80}')
-        exportNode = self.node
+        print(f'{"BEGIN":=^80}') # 80 * = centered
+        exportNode = self.node # should this be meshSelect function instead?  its applied to button rn
         if len(exportNode) != 1:
             mc.confirmDialog(message="Wrong number of mesh selected.\nCan only Select one mesh to export at a time", button="OK")
         else:
@@ -44,16 +44,16 @@ class objectSetExport(object):
             for set in sceneSets:
                 members = mc.sets(set, q=1)
                 print(f"members: {members}")
-                if not members:
+                if not members: # check if the set is empty or not
                     print(f"{set} is empty set, pass")
                     pass
-                else:
+                else: # check if the set members match selected node
                     mesh_members = [x for x in members if x.split('.')[0] == exportNode[0]]
                     print(f'mesh_members: {mesh_members}')
-                    if len(mesh_members) == 0:
+                    if len(mesh_members) == 0: # if no members match the mesh, pass
                         print(f'empty set, pass')
                         pass
-                    else:
+                    else: # add the set and members to the dictionary
                         sets_to_save[set] =  mesh_members
                         print(set, mesh_members)
 

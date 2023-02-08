@@ -24,6 +24,8 @@ def render(groom_path, dx:list(), dy:list(), resolution:int = 2048):
     xgen_set_prj(project_path, project_path) # set project
     render_path = img_output_dir(project_path, dx[1], dy[1])
 
+    print(f'render path defined')
+
     #########
 
     project_dir = render_path
@@ -42,6 +44,8 @@ def render(groom_path, dx:list(), dy:list(), resolution:int = 2048):
                     # "last_frame" : len(namecombos)
                 }
     }
+    
+    print(f'json exported')
 
     with open(fr'{render_path}{json_file}',  "w") as outfile:
         print("writing json metadata to {}".format(render_path+json_file))
@@ -120,8 +124,7 @@ def render(groom_path, dx:list(), dy:list(), resolution:int = 2048):
 
 def main():
     groom_path:list = mc.fileDialog2(cap="CHOOSE UR GROOM", fm=1, dir="G:/Shared drives/TriplegangersGroom_ext/Groom_INTERNAL/")
-    # global project_path
-    project_path = "/".join(groom_path[0].split("/")[:-2])
+    # project_path = "/".join(groom_path[0].split("/")[:-2])
     delta_path = "/".join(groom_path[0].split("/")[:-1])+"/deltaGen/"
 
     deltas = delta_retrieval(delta_path, '_coll')
